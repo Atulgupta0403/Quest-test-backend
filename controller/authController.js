@@ -18,7 +18,7 @@ exports.verifyRecaptcha = (req, res, next) => {
   const recaptcha = req.body.recaptcha;
   JSON.stringify(recaptcha);
   axios({
-    url: "https://www.google.com/recaptcha/api/siteverify?secret=${process.env.CAPTCHA_SECRET}&response=${recaptcha}",
+    url: `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.CAPTCHA_SECRET}&response=${recaptcha}`,
     method: "POST",
   })
     .then((data) => {

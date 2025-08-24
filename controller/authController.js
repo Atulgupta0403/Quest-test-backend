@@ -102,47 +102,41 @@ exports.authStudent = async (req, res, next) => {
   }
 };
 
-exports.checkTime = (req, res, next) => {
+
+exports.checkTime = async (req, res, next) => {
   try {
-    Test.findOne({ title: "BRL Recruitment Test" }, function (err, result) {
-      var time = new Date();
-      if (err) {
-        console.log(err);
-        res.status(500).send("Internal Server Error");
+    const result = await Test.findOne({ title: "BRL Recruitment Test" });
+
+    if (!result) {
+      return res.status(404).json({ message: "Test not found" });
+    }
+
+    const time = new Date();
+
+    if (time > result.startTime) {
+      if (time < result.endTime) {
+        const remainingTime = result.endTime - time;
+        const minutes = Math.max(0, Math.floor(remainingTime / 60000));
+        const seconds = Math.max(0, Math.floor((remainingTime % 60000) / 1000));
+
+        req.time = { minutes, seconds };
+        return next();
       } else {
-        if (time > result.startTime) {
-          if (time < result.endTime) {
-            const remainingTime = result.endTime - time;
-            const minutes = Math.max(0, Math.floor(remainingTime / 60000));
-            const seconds = Math.max(
-              0,
-              Math.floor((remainingTime % 60000) / 1000)
-            );
-            req.time = {
-              minutes: minutes,
-              seconds: seconds,
-            };
-            next();
-          } else {
-            res.status(500).json({
-              message: "Test has Ended",
-            });
-          }
-        } else {
-          message = "Test Not Yet Started";
-          var time_to_start = result.startTime - time;
-          const minutes = Math.floor(time_to_start / 60000);
-          const seconds = Math.floor((time_to_start % 60000) / 1000);
-          res.status(500).json({
-            message: message,
-            minutes: minutes,
-            seconds: seconds,
-          });
-        }
+        return res.status(400).json({ message: "Test has Ended" });
       }
-    });
+    } else {
+      const time_to_start = result.startTime - time;
+      const minutes = Math.floor(time_to_start / 60000);
+      const seconds = Math.floor((time_to_start % 60000) / 1000);
+
+      return res.status(400).json({
+        message: "Test Not Yet Started",
+        minutes,
+        seconds,
+      });
+    }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

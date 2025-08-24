@@ -3,6 +3,7 @@ const ObjectId = require("mongoose").Types.ObjectId;
 const User = require("../model/User");
 const Question = require("../model/Question");
 const Result=require("../model/result");
+const mongoose = require("mongoose")
 
 exports.postCheckAnswers = (req, res, next) => {
   let token = req.headers["authorization"];
@@ -65,7 +66,7 @@ exports.postCheckAnswers = (req, res, next) => {
 
 exports.returnQuestions = async (req, res, next) => {
   const result = await User.aggregate([
-    { $match: { _id: ObjectId(req.user.id) } },
+    { $match: { _id: new mongoose.Types.ObjectId(req.user.id) } },
     {
       $lookup: {
         from: Question.collection.name,

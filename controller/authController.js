@@ -18,7 +18,7 @@ exports.verifyRecaptcha = (req, res, next) => {
   const recaptcha = req.body.recaptcha;
   JSON.stringify(recaptcha);
   axios({
-    url: `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.CAPTCHA_SECRET}&response=${recaptcha}`,
+    url: "https://www.google.com/recaptcha/api/siteverify?secret=${process.env.CAPTCHA_SECRET}&response=${recaptcha}",
     method: "POST",
   })
     .then((data) => {
@@ -41,7 +41,6 @@ exports.loginStudent = (req, res) => {
   User.findOne({ rollNumber }).then((user) => {
     if (user) {
       if (!user.isLoggedIn) {
-        // Pad the user password with leading zeros if less than 6 characters
         let dbPassword = user.password;
         if (dbPassword.length < 6) {
           dbPassword = dbPassword.padStart(6, '0');
@@ -103,12 +102,11 @@ exports.authStudent = async (req, res, next) => {
 };
 
 
-exports.checkTime = async (req, res, next) => {
+exports.checkTime = async (req, res, next) => { 
   try {
     const result = await Test.findOne({ title: "BRL Recruitment Test" });
-
     if (!result) {
-      return res.status(404).json({ message: "Test not found" });
+      return res.status(404).json({ message: "Test configuration not found." });
     }
 
     const time = new Date();
@@ -117,26 +115,33 @@ exports.checkTime = async (req, res, next) => {
       if (time < result.endTime) {
         const remainingTime = result.endTime - time;
         const minutes = Math.max(0, Math.floor(remainingTime / 60000));
-        const seconds = Math.max(0, Math.floor((remainingTime % 60000) / 1000));
-
-        req.time = { minutes, seconds };
-        return next();
+        const seconds = Math.max(
+          0,
+          Math.floor((remainingTime % 60000) / 1000)
+        );
+        req.time = {
+          minutes: minutes,
+          seconds: seconds,
+        };
+        next(); 
       } else {
-        return res.status(400).json({ message: "Test has Ended" });
+        res.status(403).json({ 
+          message: "Test has Ended",
+        });
       }
     } else {
+      const message = "Test Not Yet Started";
       const time_to_start = result.startTime - time;
       const minutes = Math.floor(time_to_start / 60000);
       const seconds = Math.floor((time_to_start % 60000) / 1000);
-
-      return res.status(400).json({
-        message: "Test Not Yet Started",
-        minutes,
-        seconds,
+      res.status(403).json({ 
+        message: message,
+        minutes: minutes,
+        seconds: seconds,
       });
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
+    console.log("Error in checkTime middleware:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };

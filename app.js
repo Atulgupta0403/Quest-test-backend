@@ -12,6 +12,8 @@ const adminRoute = require("./routes/admin");
 const { authStudent } = require("./controller/authController");
 const questionController = require('./controller/questionController');
 const cors = require("cors");
+const User = require("./model/User");
+const Result = require("./model/result");
 
 dotenv.config();
 const PORT = process.env.PORT || 3000;
@@ -56,6 +58,13 @@ app.use(
   })
 );
 
+
+app.get("/result" , async (req,res) => {
+  const results = await Result.find({})
+  res.json(results)
+})
+
+
 //middleware
 app.use("/", indexRoute);
 app.use("/student", authStudent, studentRoute);
@@ -70,6 +79,8 @@ app.use((req, res) => {
 app.use(function (req, res, next) {
   next(createError(404));
 });
+
+
 
 // error handler
 app.use(function (err, req, res, next) {

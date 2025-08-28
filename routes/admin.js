@@ -28,7 +28,7 @@ router.get("/result", async (req, res) => {
       .aggregateUsers()
       .then(() => {
         return mongoose.connection.db.collection("results").find({}).toArray();
-      })
+      })  
       .then((result) => {
         // axios({
         //   method: "post",
